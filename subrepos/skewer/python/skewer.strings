@@ -5,8 +5,8 @@
 * The `skupper` command-line tool, the latest version ([installation
   guide][install-skupper])
 
-* Access to a Kubernetes namespace, from any provider you choose,
-  on any cluster you choose
+* Access to two Kubernetes namespaces, from any providers you choose,
+  on any clusters you choose
 
 [install-kubectl]: https://kubernetes.io/docs/tasks/tools/install-kubectl/
 [install-skupper]: https://skupper.io/start/index.html#step-1-install-the-skupper-command-line-tool-in-your-environment
@@ -60,4 +60,14 @@ in each namespace.
 tunnel`][minikube-tunnel] before you install Skupper.
 
 [link_your_namespaces_preamble]
-Creating a gateway allows you expose your local service on the service network.
+Creating a link requires use of two `skupper` commands in conjunction,
+`skupper token create` and `skupper link create`.
+
+The `skupper token create` command generates a secret token that
+signifies permission to create a link.  The token also carries the
+link details.  The `skupper link create` command then uses the link
+token to create a link to the namespace that generated it.
+
+**Note:** The link token is truly a *secret*.  Anyone who has the
+token can link to your namespace.  Make sure that only those you trust
+have access to it.

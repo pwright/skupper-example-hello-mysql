@@ -8,10 +8,10 @@ A minimal HTTP application deployed on a Kubernetes cluster using [Skupper](http
 * [Step 2: Log in to your clusters](#step-2-log-in-to-your-clusters)
 * [Step 3: Set the current namespaces](#step-3-set-the-current-namespaces)
 * [Step 4: Install Skupper in your namespaces](#step-4-install-skupper-in-your-namespaces)
-* [Step 5: Create a Skupper gateway](#step-5-create-a-skupper-gateway)
-* [Step 6: Deploy the frontend application](#step-6-deploy-the-frontend-application)
-* [Step 7: Expose the message broker](#step-7-expose-the-message-broker)
-* [Step 8: Run the client](#step-8-run-the-client)
+* [Step 5: Deploy the frontend application](#step-5-deploy-the-frontend-application)
+* [Step 6: Expose the frontend](#step-6-expose-the-frontend)
+* [Step 7: Create a Skupper gateway](#step-7-create-a-skupper-gateway)
+* [Step 8: Test access](#step-8-test-access)
 
 ## Overview
 
@@ -29,39 +29,22 @@ to represent the public cloud.
 ## Prerequisites
 
 * The `kubectl` command-line tool, version 1.15 or later
-  ([installation guide][install-kubectl])
+([installation guide][install-kubectl])
 
 * The `skupper` command-line tool, the latest version ([installation
-  guide][install-skupper])
+guide][install-skupper])
 
 * Access to a Kubernetes namespace, from any provider you choose,
-  on any cluster you choose
+on any cluster you choose
 
 [install-kubectl]: https://kubernetes.io/docs/tasks/tools/install-kubectl/
 [install-skupper]: https://skupper.io/start/index.html#step-1-install-the-skupper-command-line-tool-in-your-environment
 
-
 ## Step 1: Configure console session
 
-Skupper is designed for use with multiple namespaces, typically on
-different clusters.  The `skupper` command uses your
+The `skupper` command uses your
 [kubeconfig][kubeconfig] and current context to select the namespace
 where it operates.
-
-[kubeconfig]: https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/
-
-Your kubeconfig is stored in a file in your home directory.  The
-`skupper` and `kubectl` commands use the `KUBECONFIG` environment
-variable to locate it.
-
-A single kubeconfig supports only one active context per user.
-Since you will be using multiple contexts at once in this
-exercise, you need to create distinct kubeconfigs.
-
-Start a console session for each of your namespaces.  Set the
-`KUBECONFIG` environment variable to a different path in each
-session.
-
 
 Console for _public_:
 
@@ -116,26 +99,15 @@ Console for _public_:
 skupper init
 ~~~
 
-## Step 5: Create a Skupper gateway
-
-Creating a gateway allows you expose your local service on the service network.
-
+## Step 5: Deploy the frontend application
 
 Console for _public_:
 
 ~~~ shell
-skupper token create ~/public.token
+kubectl create deployment hello-mysql-frontend --image quay.io/pwright/hello-mysql-frontend
 ~~~
 
-## Step 6: Deploy the frontend application
-
-Console for _public_:
-
-~~~ shell
-kubectl apply -f broker1.yaml
-~~~
-
-## Step 7: Expose the message broker
+## Step 6: Expose the frontend
 
 Console for _public_:
 
@@ -143,10 +115,31 @@ Console for _public_:
 kubectl get services
 ~~~
 
-## Step 8: Run the client
+## Step 7: Create a Skupper gateway
+
+Creating a link requires use of two `skupper` commands in conjunction,
+`skupper token create` and `skupper link create`.
+
+The `skupper token create` command generates a secret token that
+signifies permission to create a link.  The token also carries the
+link details.  The `skupper link create` command then uses the link
+token to create a link to the namespace that generated it.
+
+**Note:** The link token is truly a *secret*.  Anyone who has the
+token can link to your namespace.  Make sure that only those you trust
+have access to it.
+
 
 Console for _public_:
 
 ~~~ shell
-kubectl run client --attach --rm --restart Never --image quay.io/skupper/activemq-example-client --env SERVER=broker1
+skupper gateway create mydb localhost 3306
+~~~
+
+## Step 8: Test access
+
+Console for _public_:
+
+~~~ shell
+kubectl
 ~~~

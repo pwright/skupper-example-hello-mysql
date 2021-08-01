@@ -12,14 +12,29 @@ overview: |-
 
   The example uses one Kubernetes namespace, "public",
   to represent the public cloud.
-prerequisites: !string prerequisites
+prerequisites: |-
+  * The `kubectl` command-line tool, version 1.15 or later
+  ([installation guide][install-kubectl])
+
+  * The `skupper` command-line tool, the latest version ([installation
+  guide][install-skupper])
+
+  * Access to a Kubernetes namespace, from any provider you choose,
+  on any cluster you choose
+
+  [install-kubectl]: https://kubernetes.io/docs/tasks/tools/install-kubectl/
+  [install-skupper]: https://skupper.io/start/index.html#step-1-install-the-skupper-command-line-tool-in-your-environment
+
 contexts:
   public:
     kubeconfig: ~/.kube/config-public
     namespace: public
 steps:
   - title: Configure console session
-    preamble: !string configure_separate_console_sessions_preamble
+    preamble: |-
+      The `skupper` command uses your
+      [kubeconfig][kubeconfig] and current context to select the namespace
+      where it operates.
     commands:
       public:
         - run: export KUBECONFIG=~/.kube/config-public
