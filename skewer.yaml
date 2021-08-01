@@ -1,0 +1,60 @@
+title: Skupper MySQL Hello World
+subtitle: |-
+  A minimal HTTP application deployed on a Kubernetes cluster using [Skupper](https://skupper.io/) to query a database running locally.
+overview: |-
+  This example is a simple application that shows how you can
+  use Skupper to access a local database at a remote site without
+  exposing it to the public internet.
+
+  It contains one service:
+
+  * A MySQL database running locally.
+
+  The example uses one Kubernetes namespace, "public",
+  to represent the public cloud.
+prerequisites: !string prerequisites
+contexts:
+  public:
+    kubeconfig: ~/.kube/config-public
+    namespace: public
+steps:
+  - title: Configure console session
+    preamble: !string configure_separate_console_sessions_preamble
+    commands:
+      public:
+        - run: export KUBECONFIG=~/.kube/config-public
+  - title: Log in to your clusters
+    preamble: !string log_in_to_your_clusters_preamble
+  - title: Set the current namespaces
+    preamble: !string set_the_current_namespaces_preamble
+    commands:
+      public:
+        - run: kubectl create namespace public
+        - run: kubectl config set-context --current --namespace public
+  - title: Install Skupper in your namespaces
+    preamble: !string install_skupper_in_your_namespaces_preamble
+    commands:
+      public:
+        - run: skupper init
+          await: [deployment/skupper-service-controller, deployment/skupper-router]
+  - title: Deploy the frontend application
+    commands:
+      public:
+        - run: kubectl create deployment hello-mysql-frontend --image quay.io/pwright/hello-mysql-frontend
+          await: [deployment/hello-mysql-frontend]
+  - title: Expose the frontend
+    commands:
+      public:
+        - run: skupper expose deployment/broker1 --port 5672
+      public:
+        - run: kubectl get services
+          await: [service/broker1]
+  - title: Create a Skupper gateway
+    preamble: !string link_your_namespaces_preamble
+    commands:
+      public:
+        - run: skupper gateway create mydb localhost 3306
+  - title: Test access
+    commands:
+      public:
+        - run: kubectl 
