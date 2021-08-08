@@ -60,10 +60,10 @@ steps:
   - title: Expose the frontend
     commands:
       public:
-        - run: skupper expose deployment/broker1 --port 5672
+        - run: kubectl expose deployment hello-mysql-frontend --port 8080 --type LoadBalancer
       public:
         - run: kubectl get services
-          await: [service/broker1]
+          await: [service/frontend]
   - title: Create a Skupper gateway
     preamble: !string link_your_namespaces_preamble
     commands:
@@ -72,4 +72,4 @@ steps:
   - title: Test access
     commands:
       public:
-        - run: kubectl 
+        - run: echo test
