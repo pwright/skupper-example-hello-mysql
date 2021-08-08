@@ -1,17 +1,27 @@
 name: main
 on: [push, pull_request]
 jobs:
-  test:
+  test_runner:
+    name: CI
     runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:5.7
+        env:
+          MYSQL_ROOT_PASSWORD: password
+        ports:
+        - 3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=10
+
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
-      - uses: manusa/actions-setup-minikube@v2.4.1
+      - name: Checkout
+        uses: actions/checkout@v2
         with:
-          minikube version: 'v1.21.0'
-          kubernetes version: 'v1.21.1'
-          github token: ${{ secrets.GITHUB_TOKEN }}
-      - run: mkdir -p "$HOME/.local/bin"
-      - run: echo "$HOME/.local/bin" >> $GITHUB_PATH
-      - run: curl -fL https://github.com/skupperproject/skupper/releases/download/0.7.0/skupper-cli-0.7.0-linux-amd64.tgz | tar -C "$HOME/.local/bin" -xzf -
-      - run: ./plano test
+          fetch-depth: 1
+      - name: add router
+        run: |
+          sudo add-apt-repository -y ppa:qpid/testing
+          sudo apt-get update --allow-unauthenticated
+          sudo apt --assume-yes install qdrouterd --allow-unauthenticated
+      - name: mysql version
+        run: mysql --host 127.0.0.1 --port ${{ job.services.mysql.ports['3306'] }} -uroot -ppassword -e "SELECT @@VERSION"
