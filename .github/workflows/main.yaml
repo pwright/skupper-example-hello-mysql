@@ -23,8 +23,15 @@ jobs:
           sudo add-apt-repository -y ppa:qpid/testing
           sudo apt-get update --allow-unauthenticated
           sudo apt --assume-yes install qdrouterd --allow-unauthenticated
-      - name: mysql version
-        run: mysql --host 127.0.0.1 --port ${{ job.services.mysql.ports['3306'] }} -uroot -ppassword -e "SELECT @@VERSION"
+      - name: mysql setup
+        run: |
+          mysql --host 127.0.0.1 --port ${{ job.services.mysql.ports['3306'] }} -uroot -ppassword -e "SELECT @@VERSION"
+          mysql --host 127.0.0.1 --port ${{ job.services.mysql.ports['3306'] }} -uroot -ppassword -e "create database skupper;"
+          mysql --host 127.0.0.1 --port ${{ job.services.mysql.ports['3306'] }} -uroot -ppassword -e "use skupper database;"
+          mysql --host 127.0.0.1 --port ${{ job.services.mysql.ports['3306'] }} -uroot -ppassword -e "CREATE TABLE greetings (ID int, text varchar(255) );"
+          mysql --host 127.0.0.1 --port ${{ job.services.mysql.ports['3306'] }} -uroot -ppassword -e "INSERT INTO greetings VALUES (1,'Hello');"
+          mysql --host 127.0.0.1 --port ${{ job.services.mysql.ports['3306'] }} -uroot -ppassword -e "CREATE USER skupper@localhost IDENTIFIED BY 'reppuks';"
+          mysql --host 127.0.0.1 --port ${{ job.services.mysql.ports['3306'] }} -uroot -ppassword -e "GRANT SELECT  ON skupper.* TO 'skupper'@'localhost';"
       - uses: actions/setup-python@v2
       - uses: manusa/actions-setup-minikube@v2.4.1
         with:
